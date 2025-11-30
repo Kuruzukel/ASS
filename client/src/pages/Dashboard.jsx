@@ -26,30 +26,44 @@ const Dashboard = () => {
         document.documentElement.setAttribute('data-theme', currentTheme);
     }, [currentTheme]);
 
-    const fetchAppointments = async () => {
+    const fetchAppointments = () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/appointments');
-            setAppointments(res.data);
+            // Get appointments from localStorage
+            const storedAppointments = localStorage.getItem('appointments');
+            if (storedAppointments) {
+                setAppointments(JSON.parse(storedAppointments));
+            } else {
+                // Initialize with empty array if no appointments exist
+                setAppointments([]);
+            }
         } catch (err) {
             toast.error('Failed to fetch appointments');
+            setAppointments([]);
         }
     };
 
-    const handleStatusChange = async (id, status) => {
+    const saveAppointments = (apps) => {
+        localStorage.setItem('appointments', JSON.stringify(apps));
+        setAppointments(apps);
+    };
+
+    const handleStatusChange = (id, status) => {
         try {
-            await axios.put(`http://localhost:5000/api/appointments/${id}`, { status });
-            fetchAppointments();
+            const updatedAppointments = appointments.map(app => 
+                app._id === id ? { ...app, status } : app
+            );
+            saveAppointments(updatedAppointments);
             toast.success(`Appointment ${status}`);
         } catch (err) {
             toast.error('Update failed');
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = (id) => {
         if (window.confirm('Are you sure you want to delete this appointment?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/appointments/${id}`);
-                fetchAppointments();
+                const updatedAppointments = appointments.filter(app => app._id !== id);
+                saveAppointments(updatedAppointments);
                 toast.success('Appointment deleted');
             } catch (err) {
                 toast.error('Delete failed');
@@ -57,15 +71,16 @@ const Dashboard = () => {
         }
     };
 
-    const handleReschedule = async (e) => {
+    const handleReschedule = (e) => {
         e.preventDefault();
         if (!selectedAppointment || !newDate) return;
         try {
-            await axios.put(`http://localhost:5000/api/appointments/${selectedAppointment._id}`, {
-                date: newDate,
-                status: 'Rescheduled'
-            });
-            fetchAppointments();
+            const updatedAppointments = appointments.map(app => 
+                app._id === selectedAppointment._id 
+                    ? { ...app, date: newDate, status: 'Rescheduled' }
+                    : app
+            );
+            saveAppointments(updatedAppointments);
             toast.success('Appointment Rescheduled');
             setIsRescheduleModalOpen(false);
             setSelectedAppointment(null);

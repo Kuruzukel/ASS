@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const AppointmentForm = () => {
@@ -15,10 +14,26 @@ const AppointmentForm = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/appointments', formData);
+            // Get existing appointments from localStorage
+            const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+            
+            // Create new appointment with unique ID
+            const newAppointment = {
+                _id: Date.now().toString(),
+                ...formData,
+                status: 'Pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            // Add new appointment to the list
+            const updatedAppointments = [...existingAppointments, newAppointment];
+            
+            // Save to localStorage
+            localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+            
             toast.success('Appointment Request Sent!');
             setFormData({ fullName: '', email: '', mobile: '', date: '', message: '' });
         } catch (err) {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { HiMail, HiLockClosed, HiArrowRight } from 'react-icons/hi';
@@ -14,17 +13,22 @@ const LoginPage = ({ setIsAuthenticated }) => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        try {
-            const res = await axios.post('http://localhost:5000/api/login', { email, password });
-            if (res.data.token) {
+        
+        // Simulate API call delay
+        setTimeout(() => {
+            // Client-side authentication (matching server credentials)
+            if (email === 'admin@example.com' && password === 'Admin123') {
+                // Store authentication in localStorage
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('adminToken', 'dummy-token-123');
                 setIsAuthenticated(true);
                 toast.success('Welcome back, Admin!');
                 setTimeout(() => navigate('/admin'), 500);
+            } else {
+                toast.error('Invalid Credentials');
+                setIsLoading(false);
             }
-        } catch (err) {
-            toast.error('Invalid Credentials');
-            setIsLoading(false);
-        }
+        }, 500);
     };
 
     return (
