@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { toast } from 'react-toastify';
@@ -8,7 +9,8 @@ import {
 } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Dashboard = () => {
+const Dashboard = ({ setIsAuthenticated }) => {
+    const navigate = useNavigate();
     const [appointments, setAppointments] = useState([]);
     const [date, setDate] = useState(new Date());
     const [view, setView] = useState('list');
@@ -92,6 +94,23 @@ const Dashboard = () => {
         setSelectedAppointment(app);
         setNewDate(app.date.slice(0, 16));
         setIsRescheduleModalOpen(true);
+    };
+
+    const handleLogout = () => {
+        // Clear authentication from localStorage
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('adminToken');
+        
+        // Update authentication state
+        if (setIsAuthenticated) {
+            setIsAuthenticated(false);
+        }
+        
+        // Show success message
+        toast.success('Logged out successfully');
+        
+        // Navigate to login page
+        navigate('/login');
     };
 
     const stats = {
@@ -216,7 +235,7 @@ const Dashboard = () => {
                                 </li>
                                 <div className="divider my-1"></div>
                                 <li>
-                                    <a className="text-error hover:bg-error/10">
+                                    <a onClick={handleLogout} className="text-error hover:bg-error/10 cursor-pointer">
                                         <HiLogout className="w-5 h-5" /> Logout
                                     </a>
                                 </li>
